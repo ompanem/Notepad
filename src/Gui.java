@@ -3,10 +3,7 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
@@ -32,6 +29,9 @@ public class Gui {
         jPanel.setLayout(new BorderLayout());
         jPanel.add(getButtonsPanel(), BorderLayout.NORTH);
         textArea = new JTextArea("Type here: ");
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
+        textArea.setMargin( new Insets(10, 10, 10,10));
         jPanel.add(textArea, BorderLayout.CENTER);
         return jPanel;
     }
@@ -52,6 +52,7 @@ public class Gui {
     public static void addButtonListeners()
     {
         saveButton.addActionListener(getSaveButtonListener());
+        openButton.addActionListener(getOpenButtonListener());
     }
 
     public static ActionListener getSaveButtonListener()
@@ -64,17 +65,7 @@ public class Gui {
                 File downloads = new File(path, "Downloads");
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setCurrentDirectory(downloads);
-                fileChooser.setFileFilter(new FileFilter() {
-                    @Override
-                    public boolean accept(File f) {
-                        return f.getName().endsWith(".txt");
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return "";
-                    }
-                });
+                fileChooser.setFileFilter(getTxtFilter());
                 fileChooser.setDialogTitle("Save File");
                 int res = fileChooser.showSaveDialog(null);
                 if(res == JFileChooser.APPROVE_OPTION)
@@ -90,7 +81,48 @@ public class Gui {
         });
     }
 
+    public static ActionListener getOpenButtonListener(){
+        return (new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String path = System.getProperty("user.home");
+                File downloads = new File(path, "Downloads");
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(downloads);
+                fileChooser.setFileFilter(getTxtFilter());
+                fileChooser.setDialogTitle("Open file");
+                int res = fileChooser.showOpenDialog(null);
+                if(res == JFileChooser.APPROVE_OPTION){
+                    File file = fileChooser.getSelectedFile();
+                    String lines = "";
+                    String line;
+                    try(BufferedReader br = new BufferedReader(new FileReader(file))){
+                        while ((line = br.readLine())!=null){
+                            lines+=line+ "\n";
+                        }
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
 
+                    textArea.setText(lines);
+                }
+            }
+        });
+    }
+
+    public static FileFilter getTxtFilter(){
+        return (new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.getName().endsWith(".txt");
+            }
+
+            @Override
+            public String getDescription() {
+                return "";
+            }
+        });
+    }
 
 
 }
